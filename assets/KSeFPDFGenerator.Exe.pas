@@ -4,9 +4,9 @@ interface
 
 type
 	TXMLType = (xtFA, xtUPO);
-	
+	TEnvironment = (evTest, evDemo, evProd);
 
-procedure GenPDF(const aXML: TStream; ANrKSeF: string; const aXMLType: TXMLType; const aOutStream: TStream);
+procedure GenPDF(const aXML: TStream; ANrKSeF: string; const aXMLType: TXMLType; const aEnvironment: TEnvironment; const aOutStream: TStream);
 
 implementation
 
@@ -15,7 +15,14 @@ uses
 	System.SysUtils,
 	WinAPI.Windows;
 
-procedure GenPDF(const aXML: TStream; ANrKSeF: string; const aXMLType: TXMLType; const aOutStream: TStream);
+const
+	C_QR1: array[Low(TEnvironment)..High(TEnvironment)] of string =
+		('https://qr-test.ksef.mf.gov.pl/invoice/{nip}/{p1}/{hash}',
+		'https://qr-demo.ksef.mf.gov.pl/invoice/{nip}/{p1}/{hash}',
+		'https://qr.ksef.mf.gov.pl/invoice/{nip}/{p1}/{hash}'
+		);
+
+procedure GenPDF(const aXML: TStream; ANrKSeF: string; const aXMLType: TXMLType; const aEnvironment: TEnvironment; const aOutStream: TStream);
 const
 	C_BUFF_SIZE = 32 * 1024;
 var
@@ -30,7 +37,7 @@ var
 	res: Integer;
 	tmpStream: TStringStream;
 begin
-	// Rurki musz¹ byæ dziedziczone
+	// Rurki muszÄ… byÄ‡ dziedziczone
 	Sec.nLength := SizeOf(Sec);
 	Sec.lpSecurityDescriptor := nil;
 	Sec.bInheritHandle := True;
@@ -53,7 +60,7 @@ begin
 	SI.wShowWindow := SW_HIDE;
 	SI.hStdInput := StdInRead;
 	SI.hStdOutput := StdOutWrite;
-	SI.hStdError := StdOutWrite; // te¿ przekierowujemy na wypadek b³êdów
+	SI.hStdError := StdOutWrite; // teÅ¼ przekierowujemy na wypadek bÅ‚Ä™dÃ³w
 
 	ZeroMemory(@PI, SizeOf(PI));
 
@@ -63,13 +70,13 @@ begin
 	begin
 		if aNrKSeF.IsEmpty then
 			aNrKSeF := '/NIE NADANY/';
-		Cmd := Format('"%sKSeF-PDFGen.exe" --stream --nrKSeF "%s" --qrCode "%s" -t invoice', [ExtractFilePath(ParamStr(0)), ANrKSeF, C_API_DATA[fCfg.Common.KSeFConfig.Environment].QR1 ]);
+		Cmd := Format('"%sKSeF-PDFGen.exe" --stream --nrKSeF "%s" --qrCode "%s" -t invoice', [ExtractFilePath(ParamStr(0)), ANrKSeF, C_QR1[aEnvironment]);
 	end
 	else
 		raise Exception.Create('Unknown XML type');
 
 
-	if not CreateProcess(nil, PChar(Cmd), nil, nil, True { dziedziczenie uchwytów},	CREATE_NO_WINDOW, nil, nil, SI, PI) then
+	if not CreateProcess(nil, PChar(Cmd), nil, nil, True { dziedziczenie uchwytÃ³w},	CREATE_NO_WINDOW, nil, nil, SI, PI) then
 		RaiseLastOSError;
 	CloseHandle(StdInRead);   StdInRead := 0;
 	CloseHandle(StdOutWrite); StdOutWrite := 0;
@@ -92,7 +99,7 @@ begin
 					raise Exception.Create('Proces pipe write error');
 			end;
 		end;
-		// Zamykamy STDIN – proces musi wiedzieæ, ¿e nie bêdzie wiêcej danych
+		// Zamykamy STDIN â€“ proces musi wiedzieÄ‡, Å¼e nie bÄ™dzie wiÄ™cej danych
 		CloseHandle(StdInWrite); StdInWrite := 0;
 
 		// ---- Czytamy STDOUT procesu ----
@@ -103,11 +110,11 @@ begin
 					Break;
 				if BytesRead > 0 then
 					aOutStream.WriteBuffer(Buffer, BytesRead);
-			until BytesRead = 0; //< SizeOf(Buffer);
+			until BytesRead = 0;
 		end;
 		aOutStream.Position := 0;
 
-		// Czekamy na zakoñczenie procesu
+		// Czekamy na zakoÅ„czenie procesu
 		WaitForSingleObject(PI.hProcess, INFINITE);
 		GetExitCodeProcess(PI.hProcess, DWORD(res));
 		if res <> 0 then
