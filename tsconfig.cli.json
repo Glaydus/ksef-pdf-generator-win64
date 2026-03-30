@@ -16,7 +16,7 @@
       "@lib-private/*": ["lib-private/*"]
     }
   },
-  "include": ["src/cli.ts", "src/node-helpers.ts", "src/lib-public/**/*", "src/shared/**/*"],
+  "include": ["src/cli.ts", "src/lib-public/**/*", "src/shared/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts", "src/app-private/**/*"]
 }
 

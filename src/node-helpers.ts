@@ -5,7 +5,9 @@ import { generateFA2 } from './lib-public/FA2-generator';
 import { Faktura as Faktura2 } from './lib-public/types/fa2.types';
 import { generateFA3 } from './lib-public/FA3-generator';
 import { Faktura as Faktura3 } from './lib-public/types/fa3.types';
-import { stripPrefixes } from './shared/XML-parser';
+import { generateFARR } from './lib-public/FARR-generator';
+import { Faktura as FakturaRR } from './lib-public/types/faRR.types';
+import { stripPrefix } from './shared/XML-parser';
 import { TCreatedPdf } from 'pdfmake/build/pdfmake';
 import { AdditionalDataTypes } from './lib-public/types/common.types';
 import pdfMake from 'pdfmake/build/pdfmake';
@@ -23,15 +25,21 @@ pdfMake.vfs = pdfFonts.vfs as unknown as { [file: string]: string };
 /**
  * Parsuje XML z ciągu znaków (dla Node.js)
  */
-export function parseXMLString(xmlString: string): unknown {
+export function parseXMLString(xmlString: string): any {
   try {
-    const jsonDoc = stripPrefixes(xml2js(xmlString, { compact: true }));
+    const jsonDoc = xml2js(xmlString, {
+      compact: true,
+      cdataKey: '_text',
+      trim: true,
+      elementNameFn: stripPrefix,
+      attributeNameFn: stripPrefix,
+    });
+
     return jsonDoc;
   } catch (error) {
     throw new Error(`Błąd parsowania XML: ${error}`);
   }
 }
-
 /**
  * Generuje PDF faktury z ciągu XML (dla Node.js)
  */
@@ -53,6 +61,10 @@ export async function generateInvoiceNode(
       break;
     case 'FA (3)':
       pdf = generateFA3((xml as any).Faktura as Faktura3, additionalData);
+      break;
+    case 'FA_RR(1)':
+    case 'FA_RR (1)':
+      pdf = generateFARR((xml as any).Faktura as Faktura3, additionalData);
       break;
     default:
       throw new Error(`Nieobsługiwana wersja faktury: ${wersja}`);
