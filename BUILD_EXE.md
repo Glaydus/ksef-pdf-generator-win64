@@ -23,7 +23,7 @@
 
 #### Generowanie faktury PDF:
 ```bash
-ksef-pdf-generator.exe -i invoice.xml -o invoice.pdf -t invoice --nrKSeF "1111111111-20251107-080080679C57-14" --qrCode "https://qr.ksef.mf.gov.pl/invoice/{nip}/{p1}/{hash}"
+ksef-pdf-generator.exe -i invoice.xml -o invoice.pdf -t invoice --nrKSeF "1111111111-20251107-080080679C57-14" --qrCode "https://qr.ksef.mf.gov.pl/invoice/{nip}/{p1}/{hash}" --watermark "Faktura"
 ```
 
 #### Generowanie faktury PDF dla trybu OFFLINE:
@@ -55,6 +55,7 @@ ksef-pdf-generator.exe --help
 - `--qrCode <url>` - URL kodu QR (wymagane dla faktur)
 - `--qr2Code <url>` - URL kodu QR2 (dla faktur w trybie OFFLINE)
 - `--stream` - Tryb strumieniowy: XML ze stdin, PDF do stdout
+- `--watermark <tekst>` - Tekst umieszczany w tle strony (znak wodny)
 - `-h, --help` - Wyświetla pomoc
 
 ## Uwagi

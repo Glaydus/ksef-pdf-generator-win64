@@ -13,6 +13,7 @@ interface CliArgs {
   nrKSeF?: string;
   qrCode?: string;
   qr2Code?: string;
+  watermark?: string;
   stream: boolean;
 }
 
@@ -69,6 +70,12 @@ function parseArgs(): CliArgs {
           i++;
         }
         break;
+      case '--watermark':
+        if (nextArg) {
+          result.watermark = nextArg;
+          i++;
+        }
+        break;
       case '--help':
       case '-h':
         printHelp();
@@ -101,12 +108,12 @@ function printHelp(): void {
 KSEF PDF Generator - Generator PDF dla faktur i UPO
 
 Użycie:
-  ${exeName} -t upo -i <ścieżka> -o <ścieżka>
-  ${exeName} -t upo --stream
-  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --nrKSeF <url> --qrCode <url>
-  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --qrCode <url> --qrCode2 <url>
-  ${exeName} -t invoice --nrKSeF <url> --qrCode <url> --stream
-  ${exeName} -t invoice --qrCode <url> --qrCode2 <url> --stream
+  ${exeName} -t upo -i <ścieżka> -o <ścieżka> [--watermark <tekst>]
+  ${exeName} -t upo --stream [--watermark <tekst>]
+  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --nrKSeF <url> --qrCode <url> [--watermark <tekst>]
+  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --qrCode <url> --qrCode2 <url> [--watermark <tekst>]
+  ${exeName} -t invoice --nrKSeF <url> --qrCode <url> --stream [--watermark <tekst>]
+  ${exeName} -t invoice --qrCode <url> --qrCode2 <url> --stream [--watermark <tekst>]
   ${exeName} -h
 
 Opcje:
@@ -116,6 +123,7 @@ Opcje:
   --nrKSeF <wartość>         Numer KSeF (wymagane dla faktur)
   --qrCode <url>             URL kodu QR (wymagane dla faktur), obsługuje parametry {hash}, {nip}, {p1}
   --qr2Code <url>            URL kodu QR2 (wymagane dla faktur), obsługuje parametry {hash}, {nip}, {p1}
+  --watermark <tekst>		 Tekst w tle strony (znak wodny)
   --stream                   Tryb strumieniowy: XML ze stdin, PDF do stdout
   -h, --help                 Wyświetla tę pomoc
 
@@ -311,6 +319,7 @@ async function main(): Promise<void> {
         nrKSeF: args.nrKSeF,
         qrCode: processedQRCode,
         qr2Code: processedQR2Code,
+        watermark: args.watermark
       };
 
       if (!args.stream) {

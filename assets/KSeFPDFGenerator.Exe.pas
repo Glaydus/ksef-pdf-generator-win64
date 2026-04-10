@@ -6,7 +6,7 @@ type
 	TXMLType = (xtFA, xtUPO);
 	TEnvironment = (evTest, evDemo, evProd);
 
-procedure GenPDF(const aXML: TStream; ANrKSeF: string; const aXMLType: TXMLType; const aEnvironment: TEnvironment; const aOutStream: TStream);
+procedure GenPDF(const aXML: TStream; ANrKSeF: string; const aXMLType: TXMLType; const aEnvironment: TEnvironment; const aOutStream: TStream; const aWatermark: String = '');
 
 implementation
 
@@ -22,7 +22,7 @@ const
 		'https://qr.ksef.mf.gov.pl/invoice/{nip}/{p1}/{hash}'
 		);
 
-procedure GenPDF(const aXML: TStream; ANrKSeF: string; const aXMLType: TXMLType; const aEnvironment: TEnvironment; const aOutStream: TStream);
+procedure GenPDF(const aXML: TStream; ANrKSeF: string; const aXMLType: TXMLType; const aEnvironment: TEnvironment; const aOutStream: TStream; const aWatermark: String = '');
 const
 	C_BUFF_SIZE = 32 * 1024;
 var
@@ -75,6 +75,8 @@ begin
 	else
 		raise Exception.Create('Unknown XML type');
 
+	if not aWatermark.IsEmpty then
+		Cmd := Format('%s --waterkark %s', [Cmd, QuotedStr(aWatermark)]);
 
 	if not CreateProcess(nil, PChar(Cmd), nil, nil, True { dziedziczenie uchwytów},	CREATE_NO_WINDOW, nil, nil, SI, PI) then
 		RaiseLastOSError;
