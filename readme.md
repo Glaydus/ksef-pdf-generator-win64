@@ -4,9 +4,19 @@ Biblioteka do generowania wizualizacji PDF faktur oraz UPO na podstawie plików 
 
 ---
 
-## 0. EXE
+## 0. EXE (Wersja zoptymalizowana)
 
-Plik EXE dołączany jest do publikowanych [wydań (releases)](https://github.com/Dzyszla/ksef-pdf-generator-win64/releases) jako załącznik.
+### Ważne informacje o wersji EXE:
+
+W tej wersji wprowadzono kluczowe usprawnienia techniczne mające na celu zapewnienie niezawodności narzędzia CLI na systemach Windows:
+
+1. **Poprawność formatowania dat (powrót do `formatDateTime`):**
+   - Zrezygnowano z użycia `Intl.DateTimeFormat` (funkcja `formatDateTimePl`) na rzecz natywnych metod obiektu `Date` (funkcja `formatDateTime`).
+   - **Powód:** Narzędzia pakujące do EXE (jak `pkg`) często nie zawierają pełnych pakietów językowych ICU. Powodowało to błąd, w którym daty na fakturach wyświetlały się w formacie ISO (`YYYY-MM-DD`) zamiast polskiego (`DD.MM.YYYY`). Obecne rozwiązanie gwarantuje poprawny polski format daty niezależnie od środowiska uruchomieniowego i bez konieczności dołączania ciężkich bibliotek zewnętrznych.
+
+2. **Optymalizacja rozmiaru pliku (Node 16):**
+   - Do budowy pliku EXE wykorzystano target `node16-win-x64` zamiast nowszych wersji.
+   - **Powód:** Pozwala to na redukcję rozmiaru pliku wynikowego o kilka megabajtów (do ok. 38 MB) przy zachowaniu pełnej stabilności i funkcjonalności. Biblioteka nie wykorzystuje funkcji specyficznych dla nowszych wersji Node.js, które uzasadniałyby większy rozmiar binarnego silnika.
 
 Informacje o kompilacji dla Windows znajdują się w pliku [BUILD_EXE.md](BUILD_EXE.md)
 
