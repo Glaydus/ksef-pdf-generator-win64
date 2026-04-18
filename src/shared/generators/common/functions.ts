@@ -66,7 +66,7 @@ export function getDateTimeWithoutSeconds(isoDate?: FP2): string {
   if (!isoDate?._text) {
     return '';
   }
-  return formatDateTimePl(isoDate._text, true);
+  return formatDateTime(isoDate._text, true);
 }
 
 export function formatTime(data?: string, withoutSeconds?: boolean): string {

@@ -18,7 +18,7 @@ import {
   TStawkaPodatku_FA2,
   TStawkaPodatku_FA3,
 } from './consts/FA.const';
-import { formatDateTimePl, formatTime, translateMap } from './generators/common/functions';
+import { formatDateTime, formatTime, translateMap } from './generators/common/functions';
 import { HeaderDefine, PdfFP, PdfOptionField } from './types/pdf-types';
 import { FP } from '../lib-public/types/fa3.types';
 import { DifferentValues, FilteredKeysOfValues, TypesOfValues } from './types/universal.types';
@@ -115,10 +115,10 @@ function formatValue(
       result.alignment = Position.RIGHT;
       break;
     case FormatTyp.DateTime:
-      result.text = formatDateTimePl(value as string, true, true);
+      result.text = formatDateTime(value as string);
       break;
     case FormatTyp.Date:
-      result.text = formatDateTimePl(value as string);
+      result.text = formatDateTime(value as string, true, true);
       break;
     case FormatTyp.Time:
       result.text = formatTime(value as string);
