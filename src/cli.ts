@@ -52,7 +52,7 @@ function parseArgs(): CliArgs {
         break;
       case '--nrKSeF':
         if (nextArg) {
-        	if (!result.qrCode2) 
+        	if (!result.qr2Code) 
           		result.nrKSeF = nextArg;
           i++;
         }
@@ -111,9 +111,9 @@ Użycie:
   ${exeName} -t upo -i <ścieżka> -o <ścieżka> [--watermark <tekst>]
   ${exeName} -t upo --stream [--watermark <tekst>]
   ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --nrKSeF <url> --qrCode <url> [--watermark <tekst>]
-  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --qrCode <url> --qrCode2 <url> [--watermark <tekst>]
+  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --qrCode <url> --qr2Code <url> [--watermark <tekst>]
   ${exeName} -t invoice --nrKSeF <url> --qrCode <url> --stream [--watermark <tekst>]
-  ${exeName} -t invoice --qrCode <url> --qrCode2 <url> --stream [--watermark <tekst>]
+  ${exeName} -t invoice --qrCode <url> --qr2Code <url> --stream [--watermark <tekst>]
   ${exeName} -h
 
 Opcje:
@@ -132,7 +132,7 @@ Przykłady:
   ${exeName} -i invoice.xml -t invoice --nrKSeF "1111111111-20251107-080080679C57-14" --qrCode "https://qr.ksef.mf.gov.pl/invoice/{nip}/{p1}/{hash}"
 
   # Generowanie faktury offline (tryb plikowy)
-  ${exeName} -i invoice.xml -t invoice --qrCode "https://qr.ksef.mf.gov.pl/invoice/{nip}/{p1}/{hash}" --qrCode2 "https://qr.ksef.mf.gov.pl/certificate/Nip/1111111111/{nip}/01F20A5D352AE590/..."
+  ${exeName} -i invoice.xml -t invoice --qrCode "https://qr.ksef.mf.gov.pl/invoice/{nip}/{p1}/{hash}" --qr2Code "https://qr.ksef.mf.gov.pl/certificate/Nip/1111111111/{nip}/01F20A5D352AE590/..."
 
   # Generowanie UPO (tryb plikowy)
   ${exeName} -i upo.xml -t upo -o output.pdf
@@ -189,7 +189,7 @@ function extractNIP(xml: any): string | null {
 /**
  * Wyciąga wartość P_1 z parsowanego XML i formatuje na dd-mm-yyyy
  */
-function extractP1Formatted(xml: any): String | null {
+function extractP1Formatted(xml: any): string | null {
   const p1 = xml?.Faktura?.Fa?.P_1;
   if (!p1) {
     return null;
@@ -281,7 +281,7 @@ async function main(): Promise<void> {
 
     if (args.type === 'invoice') {
       if (!args.nrKSeF || !args.qrCode) {
-        process.stderr.write('Błąd: Dla faktur wymagane są parametry --nrKSeF i --qrCode lub --qrCode i --qrCode2\n');
+        process.stderr.write('Błąd: Dla faktur wymagane są parametry --nrKSeF i --qrCode lub --qrCode i --qr2Code\n');
         process.exit(1);
       }
 
