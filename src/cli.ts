@@ -5,6 +5,7 @@ import { join, resolve, dirname, basename } from 'path';
 import { createHash } from 'crypto';
 import { generateInvoiceNode, generatePDFUPONode, parseXMLString } from './node-helpers';
 import { AdditionalDataTypes } from './lib-public/types/common.types';
+import { initI18next } from './lib-public/i18n/i18n-init';
 
 interface CliArgs {
   input?: string;
@@ -14,6 +15,7 @@ interface CliArgs {
   qrCode?: string;
   qr2Code?: string;
   watermark?: string;
+  lang?: string;
   stream: boolean;
 }
 
@@ -326,6 +328,8 @@ async function main(): Promise<void> {
         process.stdout.write('Generowanie PDF faktury...\n');
       }
       
+      await initI18next();
+      
       const pdfBuffer = await generateInvoiceNode(inputContent, additionalData);
       
       if (args.stream) {
@@ -343,10 +347,13 @@ async function main(): Promise<void> {
         process.stdout.write(`✓ PDF został wygenerowany: ${outputPath}\n`);
       }
     } else if (args.type === 'upo') {
+    
       if (!args.stream) {
         process.stdout.write('Generowanie PDF UPO...\n');
       }
       
+      await initI18next();
+    	
       const pdfBuffer = await generatePDFUPONode(inputContent);
       
       if (args.stream) {
