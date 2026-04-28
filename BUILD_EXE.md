@@ -41,6 +41,13 @@ ksef-pdf-generator.exe -i upo.xml -t upo -o upo.pdf
 ksef-pdf-generator.exe --stream -t invoice --nrKSeF "123-2025-ABC" --qrCode "https://qr.ksef.mf.gov.pl/invoice/{nip}/{p1}/{hash}" < invoice.xml > invoice.pdf
 ```
 
+#### Generowanie faktury PDF w innym języku:
+```bash
+ksef-pdf-generator.exe ... --lang "lang\en.json"
+```
+Plik z tłumaczeniami może być zlokalizowany w dowolnym miejscu. Musi być on zgodny ze strukturą, jaka znajduje się w repozytorium pod adresem [src/lib-public/i18n/lang/](https://github.com/Dzyszla/ksef-pdf-generator-win64/tree/main/src/lib-public/i18n/lang]
+
+
 ### Pomoc:
 ```bash
 ksef-pdf-generator.exe --help
@@ -56,6 +63,7 @@ ksef-pdf-generator.exe --help
 - `--qr2Code <url>` - URL kodu QR2 (dla faktur w trybie OFFLINE)
 - `--stream` - Tryb strumieniowy: XML ze stdin, PDF do stdout
 - `--watermark <tekst>` - Tekst umieszczany w tle strony (znak wodny)
+- `--lang <ścieżka>` - Generowanie faktury w innym języku - w parametrze <ścieżka> plik json z tłumaczeniami dla dokumentu (przykładowy plik w [src/lib-public/i18n/lang/](https://github.com/Dzyszla/ksef-pdf-generator-win64/tree/main/src/lib-public/i18n/lang])
 - `-h, --help` - Wyświetla pomoc
 
 ## Uwagi
@@ -64,6 +72,3 @@ ksef-pdf-generator.exe --help
 - **Zależności**: Wszystkie zależności muszą być zainstalowane przez `npm install` przed uruchomieniem
 - **Tryb strumieniowy**: Tryb strumieniowy (`--stream`) jest idealny do integracji z innymi aplikacjami
 - **Komunikaty błędów**: W trybie strumieniowym wszystkie komunikaty błędów są zapisywane do stderr, a dane wyjściowe (PDF) do stdout
-
-
-

@@ -78,6 +78,12 @@ function parseArgs(): CliArgs {
           i++;
         }
         break;
+      case '--lang':
+        if (nextArg) {
+          result.lang = nextArg;
+          i++;
+        }
+        break;
       case '--help':
       case '-h':
         printHelp();
@@ -110,12 +116,12 @@ function printHelp(): void {
 KSEF PDF Generator - Generator PDF dla faktur i UPO
 
 Użycie:
-  ${exeName} -t upo -i <ścieżka> -o <ścieżka> [--watermark <tekst>]
-  ${exeName} -t upo --stream [--watermark <tekst>]
-  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --nrKSeF <url> --qrCode <url> [--watermark <tekst>]
-  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --qrCode <url> --qrCode2 <url> [--watermark <tekst>]
-  ${exeName} -t invoice --nrKSeF <url> --qrCode <url> --stream [--watermark <tekst>]
-  ${exeName} -t invoice --qrCode <url> --qrCode2 <url> --stream [--watermark <tekst>]
+  ${exeName} -t upo -i <ścieżka> -o <ścieżka> [--watermark <tekst>] [--lang <ścieżka>]
+  ${exeName} -t upo --stream [--watermark <tekst>] [--lang <ścieżka>]
+  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --nrKSeF <url> --qrCode <url> [--watermark <tekst>] [--lang <ścieżka>]
+  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --qrCode <url> --qrCode2 <url> [--watermark <tekst>] [--lang <ścieżka>]
+  ${exeName} -t invoice --nrKSeF <url> --qrCode <url> --stream [--watermark <tekst>] [--lang <ścieżka>]
+  ${exeName} -t invoice --qrCode <url> --qrCode2 <url> --stream [--watermark <tekst>] [--lang <ścieżka>]
   ${exeName} -h
 
 Opcje:
@@ -126,6 +132,7 @@ Opcje:
   --qrCode <url>             URL kodu QR (wymagane dla faktur), obsługuje parametry {hash}, {nip}, {p1}
   --qr2Code <url>            URL kodu QR2 (wymagane dla faktur), obsługuje parametry {hash}, {nip}, {p1}
   --watermark <tekst>		 Tekst w tle strony (znak wodny)
+  --lang <ścieżka>           Generowanie faktury w innym języku - w parametrze <ścieżka> plik json z tłumaczeniami dla dokumentu
   --stream                   Tryb strumieniowy: XML ze stdin, PDF do stdout
   -h, --help                 Wyświetla tę pomoc
 
@@ -328,7 +335,7 @@ async function main(): Promise<void> {
         process.stdout.write('Generowanie PDF faktury...\n');
       }
       
-      await initI18next();
+      await initI18next(args.lang);
       
       const pdfBuffer = await generateInvoiceNode(inputContent, additionalData);
       
@@ -352,7 +359,7 @@ async function main(): Promise<void> {
         process.stdout.write('Generowanie PDF UPO...\n');
       }
       
-      await initI18next();
+      await initI18next(args.lang);
     	
       const pdfBuffer = await generatePDFUPONode(inputContent);
       
