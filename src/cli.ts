@@ -5,6 +5,7 @@ import { join, resolve, dirname, basename } from 'path';
 import { createHash } from 'crypto';
 import { generateInvoiceNode, generatePDFUPONode, parseXMLString } from './node-helpers';
 import { AdditionalDataTypes } from './lib-public/types/common.types';
+import { initI18next } from './lib-public/i18n/i18n-init';
 
 interface CliArgs {
   input?: string;
@@ -14,6 +15,7 @@ interface CliArgs {
   qrCode?: string;
   qr2Code?: string;
   watermark?: string;
+  lang?: string;
   stream: boolean;
 }
 
@@ -52,7 +54,7 @@ function parseArgs(): CliArgs {
         break;
       case '--nrKSeF':
         if (nextArg) {
-        	if (!result.qr2Code) 
+        	if (!result.qr2Code)
           		result.nrKSeF = nextArg;
           i++;
         }
@@ -73,6 +75,12 @@ function parseArgs(): CliArgs {
       case '--watermark':
         if (nextArg) {
           result.watermark = nextArg;
+          i++;
+        }
+        break;
+      case '--lang':
+        if (nextArg) {
+          result.lang = nextArg;
           i++;
         }
         break;
@@ -103,17 +111,17 @@ function printHelp(): void {
   // process.execPath zawiera ścieżkę do pliku wykonywalnego (.exe lub node)
   // basename() wyciąga tylko nazwę pliku
   const exeName = basename(process.execPath);
-  
+
   console.log(`
 KSEF PDF Generator - Generator PDF dla faktur i UPO
 
 Użycie:
-  ${exeName} -t upo -i <ścieżka> -o <ścieżka> [--watermark <tekst>]
-  ${exeName} -t upo --stream [--watermark <tekst>]
-  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --nrKSeF <url> --qrCode <url> [--watermark <tekst>]
-  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --qrCode <url> --qr2Code <url> [--watermark <tekst>]
-  ${exeName} -t invoice --nrKSeF <url> --qrCode <url> --stream [--watermark <tekst>]
-  ${exeName} -t invoice --qrCode <url> --qr2Code <url> --stream [--watermark <tekst>]
+  ${exeName} -t upo -i <ścieżka> -o <ścieżka> [--watermark <tekst>] [--lang <ścieżka>]
+  ${exeName} -t upo --stream [--watermark <tekst>] [--lang <ścieżka>]
+  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --nrKSeF <url> --qrCode <url> [--watermark <tekst>] [--lang <ścieżka>]
+  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --qrCode <url> --qr2Code <url> [--watermark <tekst>] [--lang <ścieżka>]
+  ${exeName} -t invoice --nrKSeF <url> --qrCode <url> --stream [--watermark <tekst>] [--lang <ścieżka>]
+  ${exeName} -t invoice --qrCode <url> --qr2Code <url> --stream [--watermark <tekst>] [--lang <ścieżka>]
   ${exeName} -h
 
 Opcje:
@@ -123,7 +131,8 @@ Opcje:
   --nrKSeF <wartość>         Numer KSeF (wymagane dla faktur)
   --qrCode <url>             URL kodu QR (wymagane dla faktur), obsługuje parametry {hash}, {nip}, {p1}
   --qr2Code <url>            URL kodu QR2 (wymagane dla faktur), obsługuje parametry {hash}, {nip}, {p1}
-  --watermark <tekst>		 Tekst w tle strony (znak wodny)
+  --watermark <tekst>        Tekst w tle strony (znak wodny)
+  --lang <ścieżka>           Generowanie faktury w innym języku - w parametrze <ścieżka> plik json z tłumaczeniami dla dokumentu
   --stream                   Tryb strumieniowy: XML ze stdin, PDF do stdout
   -h, --help                 Wyświetla tę pomoc
 
@@ -150,15 +159,15 @@ async function readStdin(): Promise<string> {
   return new Promise((resolve, reject) => {
     let input = '';
     process.stdin.setEncoding('utf8');
-    
+
     process.stdin.on('data', (chunk: string) => {
       input += chunk;
     });
-    
+
     process.stdin.on('end', () => {
       resolve(input);
     });
-    
+
     process.stdin.on('error', (error) => {
       reject(error);
     });
@@ -194,19 +203,19 @@ function extractP1Formatted(xml: any): string | null {
   if (!p1) {
     return null;
   }
-  
+
   // P_1 może być stringiem lub obiektem z _text
   const dateStr = typeof p1 === 'string' ? p1 : p1._text || null;
   if (!dateStr) {
     return null;
   }
-  
+
   // Format wejściowy: yyyy-mm-dd (może zawierać czas, więc bierzemy tylko część daty)
   const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (!dateMatch) {
     return dateStr; // Jeśli format nie pasuje, zwróć oryginalną wartość
   }
-  
+
   // Format wyjściowy: dd-mm-yyyy
   const [, year, month, day] = dateMatch;
   return `${day}-${month}-${year}`;
@@ -217,13 +226,13 @@ function extractP1Formatted(xml: any): string | null {
  */
 function processQRCodeTemplate(qrCodeTemplate: string, xmlContent: string, xml: any): string {
   let result = qrCodeTemplate;
-  
+
   // {hash} - SHA256 Base64URL całego XML
   if (result.includes('{hash}')) {
     const hash = calculateSHA256Base64URL(xmlContent);
     result = result.replace(/{hash}/g, hash);
   }
-  
+
   // {nip} - NIP z Podmiot1
   if (result.includes('{nip}')) {
     const nip = extractNIP(xml);
@@ -233,7 +242,7 @@ function processQRCodeTemplate(qrCodeTemplate: string, xmlContent: string, xml: 
       throw new Error('Nie można znaleźć pola NIP w pliku XML (Faktura.Podmiot1.DaneIdentyfikacyjne.NIP)');
     }
   }
-  
+
   // {p1} - P_1 w formacie dd-mm-yyyy
   if (result.includes('{p1}')) {
     const p1 = extractP1Formatted(xml);
@@ -243,7 +252,7 @@ function processQRCodeTemplate(qrCodeTemplate: string, xmlContent: string, xml: 
       throw new Error('Nie można znaleźć pola P_1 w pliku XML (Faktura.Fa.P_1)');
     }
   }
-  
+
   return result;
 }
 
@@ -270,7 +279,7 @@ async function main(): Promise<void> {
         process.stderr.write('Błąd: W trybie plikowym wymagany jest argument --input\n');
         process.exit(1);
       }
-      
+
       try {
         inputContent = readFileSync(args.input, 'utf-8');
       } catch (error) {
@@ -325,9 +334,11 @@ async function main(): Promise<void> {
       if (!args.stream) {
         process.stdout.write('Generowanie PDF faktury...\n');
       }
-      
+
+      await initI18next(args.lang);
+
       const pdfBuffer = await generateInvoiceNode(inputContent, additionalData);
-      
+
       if (args.stream) {
         // Tryb strumieniowy - zapisz do stdout
         process.stdout.write(pdfBuffer);
@@ -343,12 +354,15 @@ async function main(): Promise<void> {
         process.stdout.write(`✓ PDF został wygenerowany: ${outputPath}\n`);
       }
     } else if (args.type === 'upo') {
+
       if (!args.stream) {
         process.stdout.write('Generowanie PDF UPO...\n');
       }
-      
+
+      await initI18next(args.lang);
+
       const pdfBuffer = await generatePDFUPONode(inputContent);
-      
+
       if (args.stream) {
         // Tryb strumieniowy - zapisz do stdout
         process.stdout.write(pdfBuffer);
