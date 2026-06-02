@@ -16,7 +16,7 @@ import { Upo } from './lib-public/types/upo-v4_2.types';
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { generateStyle } from './shared/PDF-functions';
 import { generateNaglowekUPO } from './lib-public/generators/UPO4_2/Naglowek';
-import { generateDokumnetUPO } from './lib-public/generators/UPO4_2/Dokumenty';
+import { generateDokumentUPO } from './lib-public/generators/UPO4_2/Dokumenty';
 import { Position } from './shared/enums/common.enum';
 
 // Inicjalizacja pdfmake z czcionkami (wymagane dla Node.js)

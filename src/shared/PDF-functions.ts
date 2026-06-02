@@ -108,6 +108,12 @@ function formatValue(
         : `${dotToComma(Number(value).toFixed(2))} ${currency}`;
       result.fontSize = 10;
       break;
+    case FormatTyp.CurrencyGreaterWithSeparator:
+      result.text = isNaN(Number(value))
+        ? (value as string)
+        : `${normalizeCurrencySeparator(value)} ${currency}`;
+      result.fontSize = 10;
+      break;
     case FormatTyp.Currency6:
       result.text = isNaN(Number(value))
         ? (value as string)
@@ -220,12 +226,14 @@ export function createLabelTextArray(data: CreateLabelTextData[]): Content[] {
 
 export function addThousandSeparator(
   value: string,
-  thousandSeparator: string = ' ',
-  decimalSeparator: string = ','
+  thousandSeparator = '\xa0',
+  decimalSeparator = ','
 ): string {
   const splitRegex = /\B(?=(\d{3})+(?!\d))/g;
+
   if (value.includes(decimalSeparator)) {
     const splitValue = value.split(decimalSeparator);
+
     return `${splitValue[0].replace(splitRegex, thousandSeparator)}${decimalSeparator}${splitValue[1]}`;
   } else {
     return value.replace(splitRegex, thousandSeparator);

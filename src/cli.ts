@@ -1,11 +1,10 @@
 #!/usr/bin/env node
-
 import { readFileSync, writeFileSync } from 'fs';
 import { join, resolve, dirname, basename } from 'path';
 import { createHash } from 'crypto';
 import { generateInvoiceNode, generatePDFUPONode, parseXMLString } from './node-helpers';
 import { AdditionalDataTypes } from './lib-public/types/common.types';
-import { initI18next } from './lib-public/i18n/i18n-init';
+import { i18nReady } from './lib-public/i18n/i18n-init';
 
 interface CliArgs {
   input?: string;
@@ -335,7 +334,7 @@ async function main(): Promise<void> {
         process.stdout.write('Generowanie PDF faktury...\n');
       }
       
-      await initI18next(args.lang);
+      await i18nReady(args.lang);
       
       const pdfBuffer = await generateInvoiceNode(inputContent, additionalData);
       
@@ -359,7 +358,7 @@ async function main(): Promise<void> {
         process.stdout.write('Generowanie PDF UPO...\n');
       }
       
-      await initI18next(args.lang);
+      await i18nReady(args.lang);
     	
       const pdfBuffer = await generatePDFUPONode(inputContent);
       

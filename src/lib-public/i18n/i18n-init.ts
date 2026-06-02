@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import pl from './lang/pl.json';
 
-export async function initI18next(
+export async function i18nReady(
   filePath?: string,
   lng: string = 'pl'
 ): Promise<void> {
