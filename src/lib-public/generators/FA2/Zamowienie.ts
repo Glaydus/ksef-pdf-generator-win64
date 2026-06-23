@@ -132,11 +132,11 @@ export function generateZamowienie(
   const ceny = i18n.t('invoice.order.issuedInCurrency', { currency: KodWaluty });
   let opis: Content = '';
 
-  if (Number(p_15) > 0 && rodzajFaktury == TRodzajFaktury.ZAL) {
+  if (rodzajFaktury == TRodzajFaktury.ZAL) {
     opis = {
       stack: createLabelTextArray([
         { value: i18n.t('invoice.order.advancePaymentAmount'), formatTyp: FormatTyp.LabelGreater },
-        { value: p_15, formatTyp: FormatTyp.CurrencyGreater },
+        { value: p_15, formatTyp: FormatTyp.CurrencyGreaterWithSeparator },
       ]),
       alignment: Position.RIGHT,
       margin: [0, 8, 0, 0],
@@ -151,7 +151,7 @@ export function generateZamowienie(
           value: i18n.t('invoice.order.advancePaymentAmountCorrection'),
           formatTyp: FormatTyp.LabelGreater,
         },
-        { value: p_15, formatTyp: FormatTyp.CurrencyGreater },
+        { value: p_15, formatTyp: FormatTyp.CurrencyGreaterWithSeparator },
       ]),
       alignment: Position.RIGHT,
       margin: [0, 8, 0, 0],

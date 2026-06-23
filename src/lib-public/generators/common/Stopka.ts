@@ -40,7 +40,7 @@ export function generateStopka(
   const result: Content = [
     verticalSpacing(1),
     ...(wzty.length ? [generateLine()] : []),
-    ...(wzty.length ? [generateTwoColumns(wzty, [])] : []),
+    ...(wzty.length ? [generateTwoColumns(wzty, [], undefined, false)] : []),
     ...(rejestry.length || informacje.length ? [generateLine()] : []),
     ...rejestry,
     ...informacje,
@@ -50,7 +50,10 @@ export function generateStopka(
     createSection(
       [
         {
-          stack: createLabelText(i18n.t('invoice.footer.generatedIn'), createVersionLabel()),
+          stack: createLabelText(
+            i18n.t('invoice.footer.generatedIn'),
+            createVersionLabel(naglowek?.SystemInfo?._text)
+          ),
           margin: [0, 8, 0, 0],
         },
       ],
