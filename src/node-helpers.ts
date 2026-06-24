@@ -87,7 +87,7 @@ export async function generateInvoiceNode(
 export async function generatePDFUPONode(xmlString: string): Promise<Buffer> {
   const upo = parseXMLString(xmlString) as Upo;
   const docDefinition: TDocumentDefinitions = {
-    content: [generateNaglowekUPO(upo.Potwierdzenie!), generateDokumnetUPO(upo.Potwierdzenie!)],
+    content: [generateNaglowekUPO(upo.Potwierdzenie!), generateDokumentUPO(upo.Potwierdzenie!)],
     ...generateStyle(),
     pageSize: 'A4',
     pageOrientation: 'landscape',
