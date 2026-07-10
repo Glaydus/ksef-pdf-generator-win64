@@ -2,9 +2,39 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { join, resolve, dirname, basename } from 'path';
 import { createHash } from 'crypto';
-import { generateInvoiceNode, generatePDFUPONode, parseXMLString } from './node-helpers';
-import { AdditionalDataTypes } from './lib-public/types/common.types';
-import { i18nReady } from './lib-public/i18n/i18n-init';
+import type { AdditionalDataTypes } from './lib-public/types/common.types';
+
+const NativeTextDecoder = globalThis.TextDecoder;
+
+// Node 18 embedded by pkg does not recognize the WHATWG "ascii" label used by pdfmake.
+Object.defineProperty(globalThis, 'TextDecoder', {
+  value: class TextDecoderCompatible {
+    private readonly decoder?: TextDecoder;
+    private readonly ascii: boolean;
+
+    constructor(label = 'utf-8', options?: TextDecoderOptions) {
+      this.ascii = label.toLowerCase() === 'ascii';
+      if (!this.ascii) {
+        this.decoder = new NativeTextDecoder(label, options);
+      }
+    }
+
+    decode(input?: AllowSharedBufferSource, options?: TextDecodeOptions): string {
+      if (!this.ascii) {
+        return this.decoder!.decode(input, options);
+      }
+
+      if (!input) {
+        return '';
+      }
+
+      const bytes = input instanceof ArrayBuffer
+        ? new Uint8Array(input)
+        : new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+      return Array.from(bytes, byte => String.fromCharCode(byte)).join('');
+    }
+  }
+});
 
 interface CliArgs {
   input?: string;
@@ -258,6 +288,8 @@ function processQRCodeTemplate(qrCodeTemplate: string, xmlContent: string, xml: 
 async function main(): Promise<void> {
   try {
     const args = parseArgs();
+    const { generateInvoiceNode, generatePDFUPONode, parseXMLString } = await import('./node-helpers');
+    const { i18nReady } = await import('./lib-public/i18n/i18n-init');
     let inputContent: string;
     
     // Tryb strumieniowy - czytaj ze stdin
@@ -384,4 +416,3 @@ async function main(): Promise<void> {
 }
 
 main();
-

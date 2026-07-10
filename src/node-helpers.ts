@@ -8,7 +8,6 @@ import { Faktura as Faktura3 } from './lib-public/types/fa3.types';
 import { generateFARR } from './lib-public/FARR-generator';
 import { Faktura as FakturaRR } from './lib-public/types/faRR.types';
 import { stripPrefix } from './shared/XML-parser';
-import { TCreatedPdf } from 'pdfmake/build/pdfmake';
 import { AdditionalDataTypes } from './lib-public/types/common.types';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
@@ -20,7 +19,7 @@ import { generateDokumentUPO } from './lib-public/generators/UPO4_2/Dokumenty';
 import { Position } from './shared/enums/common.enum';
 
 // Inicjalizacja pdfmake z czcionkami (wymagane dla Node.js)
-pdfMake.vfs = pdfFonts.vfs as unknown as { [file: string]: string };
+(pdfMake as any).addVirtualFileSystem(pdfFonts);
 
 /**
  * Parsuje XML z ciągu znaków (dla Node.js)
@@ -50,35 +49,19 @@ export async function generateInvoiceNode(
   const xml = parseXMLString(xmlString);
   const wersja: any = (xml as any)?.Faktura?.Naglowek?.KodFormularza?._attributes?.kodSystemowy;
 
-  let pdf: TCreatedPdf;
-
   switch (wersja) {
     case 'FA (1)':
-      pdf = generateFA1((xml as any).Faktura as Faktura1, additionalData);
-      break;
+      return (generateFA1((xml as any).Faktura as Faktura1, additionalData) as any).getBuffer();
     case 'FA (2)':
-      pdf = generateFA2((xml as any).Faktura as Faktura2, additionalData);
-      break;
+      return (generateFA2((xml as any).Faktura as Faktura2, additionalData) as any).getBuffer();
     case 'FA (3)':
-      pdf = generateFA3((xml as any).Faktura as Faktura3, additionalData);
-      break;
+      return (generateFA3((xml as any).Faktura as Faktura3, additionalData) as any).getBuffer();
     case 'FA_RR(1)':
     case 'FA_RR (1)':
-      pdf = generateFARR((xml as any).Faktura as FakturaRR, additionalData);
-      break;
+      return (generateFARR((xml as any).Faktura as FakturaRR, additionalData) as any).getBuffer();
     default:
       throw new Error(`Nieobsługiwana wersja faktury: ${wersja}`);
   }
-
-  return new Promise((resolve, reject): void => {
-    pdf.getBuffer((buffer: Buffer): void => {
-      if (buffer) {
-        resolve(buffer);
-      } else {
-        reject(new Error('Błąd podczas generowania PDF'));
-      }
-    });
-  });
 }
 
 /**
@@ -100,14 +83,5 @@ export async function generatePDFUPONode(xmlString: string): Promise<Buffer> {
     },
   };
 
-  return new Promise((resolve, reject): void => {
-    pdfMake.createPdf(docDefinition).getBuffer((buffer: Buffer): void => {
-      if (buffer) {
-        resolve(buffer);
-      } else {
-        reject(new Error('Błąd podczas generowania PDF'));
-      }
-    });
-  });
+  return (pdfMake.createPdf(docDefinition) as any).getBuffer();
 }
-
