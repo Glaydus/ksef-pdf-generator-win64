@@ -23,7 +23,7 @@
 
 #### Generowanie faktury PDF:
 ```bash
-ksef-pdf-generator.exe -i invoice.xml -o invoice.pdf -t invoice --nrKSeF "1111111111-20251107-080080679C57-14" --qrCode "https://qr.ksef.mf.gov.pl/invoice/{nip}/{p1}/{hash}" --watermark "Faktura"
+ksef-pdf-generator.exe -i invoice.xml -o invoice.pdf -t invoice --nrKSeF "1111111111-20251107-080080679C57-14" --acquisitionDate "07.11.2025 08:15:30" --qrCode "https://qr.ksef.mf.gov.pl/invoice/{nip}/{p1}/{hash}" --watermark "Faktura"
 ```
 
 #### Generowanie faktury PDF dla trybu OFFLINE:
@@ -58,7 +58,8 @@ ksef-pdf-generator.exe --help
 - `-i, --input <ścieżka>` - Ścieżka do pliku XML wejściowego (wymagane w trybie plikowym)
 - `-o, --output <ścieżka>` - Ścieżka do pliku PDF wyjściowego (opcjonalne, tylko w trybie plikowym, domyślnie: nazwa pliku wejściowego z rozszerzeniem .pdf)
 - `-t, --type <typ>` - Typ dokumentu: `invoice` lub `upo` (wymagane)
-- `--nrKSeF <wartość>` - Numer KSeF (wymagane dla faktur)
+- `--nrKSeF <wartość>` - Numer KSeF. Dla faktury w trybie plikowym parametr można pominąć, jeżeli nazwa pliku XML (bez rozszerzenia) jest numerem KSeF, np. `1111111111-20251107-080080679C57-14.xml`.
+- `--acquisitionDate <data>` - Data nadania numeru KSeF (opcjonalne dla faktur)
 - `--qrCode <url>` - URL kodu QR (wymagane dla faktur)
 - `--qr2Code <url>` - URL kodu QR2 (dla faktur w trybie OFFLINE)
 - `--stream` - Tryb strumieniowy: XML ze stdin, PDF do stdout
