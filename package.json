@@ -1,10 +1,9 @@
 {
   "name": "@akmf/ksef-fe-invoice-converter",
-  "version": "1.1.19 [fork: Win64-exe 1.1.19.1 by Dzyszla]",
+  "version": "1.1.25 [fork: Win64-exe 1.1.25.0 by Dzyszla]",
   "scripts": {
     "build": "npx esbuild src/cli.ts --bundle --platform=node --minify --outfile=dist/bundle.js && npx pkg dist/bundle.js --targets node18-win-x64 -compress GZip --output KSeF-PDFGen.exe",
-    "build:with-version": "npm run build && node scripts/apply-rc-version-resourcehacker.cjs",
-    "type": "tsc -p tsconfig.json --noEmit"
+    "build:with-version": "npm run build && node scripts/apply-rc-version-resourcehacker.cjs"
   },
   "main": "./ksef-fe-invoice-converter.umd.cjs",
   "module": "./ksef-fe-invoice-converter.js",

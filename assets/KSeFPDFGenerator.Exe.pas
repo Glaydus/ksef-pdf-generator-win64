@@ -7,6 +7,7 @@ type
 	TEnvironment = (evTest, evDemo, evProd);
 	
 	TGenOptions = record
+		AcDate: TDateTime;
 		Watermark: String;
 		LangFileName: String;
 	end;		
@@ -76,6 +77,8 @@ begin
 		if aNrKSeF.IsEmpty then
 			aNrKSeF := '/NIE NADANY/';
 		Cmd := Format('"%sKSeF-PDFGen.exe" --stream --nrKSeF "%s" --qrCode "%s" -t invoice', [ExtractFilePath(ParamStr(0)), ANrKSeF, C_QR1[aEnvironment]);
+		if aOptions.AcDate <> 0 then
+			Cmd := Format('%s --acquisitionDate "%s"', [Cmd, DateTimeToStr(aOptions.AcDate)]);
 	end
 	else
 		raise Exception.Create('Unknown XML type');

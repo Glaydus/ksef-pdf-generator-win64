@@ -41,11 +41,20 @@ interface CliArgs {
   output?: string;
   type: 'invoice' | 'upo';
   nrKSeF?: string;
+  acquisitionDate?: string;
   qrCode?: string;
   qr2Code?: string;
   watermark?: string;
   lang?: string;
   stream: boolean;
+}
+
+const KSEF_NUMBER_PATTERN = /^\d{10}-\d{8}-[A-Z0-9]{12}-[A-Z0-9]{2}$/;
+
+function extractKSeFNumberFromInputPath(inputPath: string): string | undefined {
+  const inputFileName = basename(inputPath);
+  const inputFileBaseName = inputFileName.replace(/\.[^.]+$/, '');
+  return KSEF_NUMBER_PATTERN.test(inputFileBaseName) ? inputFileBaseName : undefined;
 }
 
 function parseArgs(): CliArgs {
@@ -85,6 +94,12 @@ function parseArgs(): CliArgs {
         if (nextArg) {
         	if (!result.qr2Code) 
           		result.nrKSeF = nextArg;
+          i++;
+        }
+        break;
+      case '--acquisitionDate':
+        if (nextArg) {
+          result.acquisitionDate = nextArg;
           i++;
         }
         break;
@@ -147,17 +162,18 @@ KSEF PDF Generator - Generator PDF dla faktur i UPO
 Użycie:
   ${exeName} -t upo -i <ścieżka> -o <ścieżka> [--watermark <tekst>] [--lang <ścieżka>]
   ${exeName} -t upo --stream [--watermark <tekst>] [--lang <ścieżka>]
-  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --nrKSeF <url> --qrCode <url> [--watermark <tekst>] [--lang <ścieżka>]
-  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --qrCode <url> --qr2Code <url> [--watermark <tekst>] [--lang <ścieżka>]
-  ${exeName} -t invoice --nrKSeF <url> --qrCode <url> --stream [--watermark <tekst>] [--lang <ścieżka>]
-  ${exeName} -t invoice --qrCode <url> --qr2Code <url> --stream [--watermark <tekst>] [--lang <ścieżka>]
+  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> [--nrKSeF <wartość>] --qrCode <url> [--acquisitionDate <data>] [--watermark <tekst>] [--lang <ścieżka>]
+  ${exeName} -t invoice -i <ścieżka> -o <ścieżka> --qrCode <url> --qr2Code <url> [--acquisitionDate <data>] [--watermark <tekst>] [--lang <ścieżka>]
+  ${exeName} -t invoice --nrKSeF <url> --qrCode <url> --stream [--acquisitionDate <data>] [--watermark <tekst>] [--lang <ścieżka>]
+  ${exeName} -t invoice --qrCode <url> --qr2Code <url> --stream [--acquisitionDate <data>] [--watermark <tekst>] [--lang <ścieżka>]
   ${exeName} -h
 
 Opcje:
   -i, --input <ścieżka>      Ścieżka do pliku XML wejściowego (wymagane w trybie plikowym)
   -o, --output <ścieżka>     Ścieżka do pliku PDF wyjściowego (opcjonalne, tylko w trybie plikowym)
   -t, --type <typ>           Typ dokumentu: 'invoice' lub 'upo' (wymagane)
-  --nrKSeF <wartość>         Numer KSeF (wymagane dla faktur)
+  --nrKSeF <wartość>         Numer KSeF (dla faktur; przy braku pobierany z nazwy pliku wejściowego, jeśli ma format numeru KSeF)
+  --acquisitionDate <data>  Data nadania numeru KSeF (opcjonalne dla faktur)
   --qrCode <url>             URL kodu QR (wymagane dla faktur), obsługuje parametry {hash}, {nip}, {p1}
   --qr2Code <url>            URL kodu QR2 (wymagane dla faktur), obsługuje parametry {hash}, {nip}, {p1}
   --watermark <tekst>        Tekst w tle strony (znak wodny)
@@ -167,7 +183,7 @@ Opcje:
 
 Przykłady:
   # Generowanie faktury (tryb plikowy)
-  ${exeName} -i invoice.xml -t invoice --nrKSeF "1111111111-20251107-080080679C57-14" --qrCode "https://qr.ksef.mf.gov.pl/invoice/{nip}/{p1}/{hash}"
+  ${exeName} -i invoice.xml -t invoice --nrKSeF "1111111111-20251107-080080679C57-14" --acquisitionDate "07.11.2025 08:15:30" --qrCode "https://qr.ksef.mf.gov.pl/invoice/{nip}/{p1}/{hash}"
 
   # Generowanie faktury offline (tryb plikowy)
   ${exeName} -i invoice.xml -t invoice --qrCode "https://qr.ksef.mf.gov.pl/invoice/{nip}/{p1}/{hash}" --qr2Code "https://qr.ksef.mf.gov.pl/certificate/Nip/1111111111/{nip}/01F20A5D352AE590/..."
@@ -320,8 +336,12 @@ async function main(): Promise<void> {
     }
 
     if (args.type === 'invoice') {
+      if (!args.nrKSeF && args.input) {
+        args.nrKSeF = extractKSeFNumberFromInputPath(args.input);
+      }
+
       if (!args.nrKSeF || !args.qrCode) {
-        process.stderr.write('Błąd: Dla faktur wymagane są parametry --nrKSeF i --qrCode lub --qrCode i --qr2Code\n');
+        process.stderr.write('Błąd: Dla faktur wymagany jest parametr --qrCode oraz --nrKSeF (lub numer KSeF w nazwie pliku wejściowego), albo parametry --qrCode i --qr2Code\n');
         process.exit(1);
       }
 
@@ -357,6 +377,7 @@ async function main(): Promise<void> {
 
       const additionalData: AdditionalDataTypes = {
         nrKSeF: args.nrKSeF,
+        acDate: args.acquisitionDate,
         qrCode: processedQRCode,
         qr2Code: processedQR2Code,
         watermark: args.watermark
